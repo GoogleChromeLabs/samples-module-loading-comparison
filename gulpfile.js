@@ -227,7 +227,8 @@ gulp.task('minify', ['unbundled', 'bundled-unoptimized', 'bundled-optimized'], (
 
 // Copy HTML to all three builds.
 gulp.task('html', ['clean'], () => {
-  return gulp.src('src/**/*.html').pipe(gulp.dest('dist'));
+  return merge(gulp.src('src/**/*.html').pipe(gulp.dest('dist')),
+               gulp.src('src/*.js').pipe(gulp.dest('dist')));
 });
 
 // Meta build task for creating all builds.
@@ -286,6 +287,7 @@ function _cacheEverything() {
       cache[js] = zlib.gzipSync(fs.readFileSync(path.join(__dirname, 'dist', js)));
     });
   });
+  cache['display-results.js'] = zlib.gzipSync(fs.readFileSync(path.join(__dirname, 'dist', 'display-results.js')));
   console.log('HTTP server: done loading.');
 }
 

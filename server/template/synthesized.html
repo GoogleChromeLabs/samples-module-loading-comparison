@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <title>Synthesized module tree test</title>
+</head>
+
+<div id=benchmark-results></div>
+<script>
+performance.setResourceTimingBufferSize(10000);
+
+window.onload = function() {
+    let results = { onload: Math.round(performance.now()) };
+    let timings = performance.getEntriesByType('resource').filter(
+        rt => rt.name.indexOf('.js') >= 0);
+    results.nmodule = timings.length;
+    results.firstFetchStart = Math.round(Math.min.apply(null, timings.map(rt => rt.fetchStart)));
+    results.lastResponseEnd = Math.round(Math.max.apply(null, timings.map(rt => rt.responseEnd)));
+
+    let urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('json')) {
+        document.getElementById('benchmark-results').innerText = JSON.stringify(results);
+    } else {
+        let items = [['nmodule', 'Number of modules', ''],
+                     ['onload', 'Time to onload', ' ms'],
+                     ['firstFetchStart', 'First module fetchStart', ' ms'],
+                     ['lastResponseEnd', 'Last module responseEnd', ' ms']];
+        let table = '<table>';
+        for (let [name, title, unit] of items)
+            table += '<tr><td>' + title + ':</td><td style="text-align:right">' + results[name] + unit + '</td></tr>';
+        table += '</table>';
+        document.getElementById('benchmark-results').innerHTML = table;
+    }
+}
+</script>
+<script type=module src="{{.ScriptUrl}}"></script>
+</html>
