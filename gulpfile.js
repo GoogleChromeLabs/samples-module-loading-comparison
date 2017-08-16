@@ -287,13 +287,19 @@ function _cacheEverything() {
       cache[js] = zlib.gzipSync(fs.readFileSync(path.join(__dirname, 'dist', js)));
     });
   });
+  cache['index.html'] = zlib.gzipSync(fs.readFileSync(path.join(__dirname, 'dist', 'index.html')));
   cache['display-results.js'] = zlib.gzipSync(fs.readFileSync(path.join(__dirname, 'dist', 'display-results.js')));
   console.log('HTTP server: done loading.');
 }
 
 // Auxiliary method for handling an HTTP request.
 function _onRequest(request, response) {
-  const url = request.url.startsWith('/') ? request.url.substr(1) : request.url;
+  let url = request.url;
+  if (url.endsWith('/')) {
+    url += 'index.html';
+  }
+  url = url.replace(/^\/(r\/\d+\/)?/, '');  // Strip randomized prefix (/r/[0-9]+)
+
   console.log(`HTTP server: request for ${request.url}`);
   if (cache[url]) {
     if (push && pushFiles[url] && response.push) {

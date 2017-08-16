@@ -31,6 +31,7 @@ import (
 	"net/http"
 	"net/url"
 	"path"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -126,6 +127,7 @@ func cacheEverything() error {
 			}
 		}
 	}
+	cache["index.html"], err = readFileAndEncode(path.Join("dist", "index.html"))
 	cache["display-results.js"], err = readFileAndEncode(path.Join("dist", "display-results.js"))
 	if err != nil {
 		return err
@@ -151,15 +153,22 @@ func encodeContent(content []byte) ([]byte, error) {
 	return buf.Bytes(), err
 }
 
+var randomizedPrefixRegexp = regexp.MustCompile(`^/(r/\d+/)?`)
+
 func onRequest(w http.ResponseWriter, r *http.Request) {
 	upath := r.URL.Path
-	content, ok := cache[upath[1:]]
+	if upath[len(upath)-1] == '/' {
+		upath += "index.html"
+	}
+	upath = randomizedPrefixRegexp.ReplaceAllLiteralString(upath, "")
+
+	content, ok := cache[upath]
 	if !ok {
 		http.Error(w, "404 page not found", http.StatusNotFound)
 		return
 	}
 
-	pushIfPossible(w, r, upath[1:])
+	pushIfPossible(w, r, upath)
 
 	ctype := mime.TypeByExtension(path.Ext(upath))
 	if ctype != "" {

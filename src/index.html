@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+  <title>Module scripts loading test</title>
+  <style>
+  body {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  button {
+    padding: 5px;
+    margin: 5px;
+  }
+  </style>
+</head>
+
+<body>
+<h1>Module scripts loading test</h1>
+<p>
+All tests are median of 25 runs.
+</p>
+<div id="buttons">
+  <button onclick="runAll()">Run all</button>
+</div>
+
+<div id="benchmark-results"></div>
+
+<script>
+
+const numTrials = 25;
+
+const testConfigs = {
+  'Moment.js': { module: 'moment/unbundled/node_modules/moment/src/moment.js' },
+  'Three.js': { module: 'three/unbundled/node_modules/three/src/Three.js' }
+};
+
+function loadModule(module, rand) {
+  return new Promise((resolve, reject) => {
+    let start = window.performance.now();
+    let script = document.createElement('script');
+    script.setAttribute('type', 'module');
+    script.setAttribute('src', `r/${rand}/${module}`);
+    script.onload = () => {
+      resolve(window.performance.now() - start);
+    };
+    script.onerror = reject;
+    document.body.appendChild(script);
+  });
+}
+
+async function repetitiveLoad(name, module, trials) {
+  let samples = [];
+  for (let i = 0; i < trials; i++) {
+     let elapsed = await loadModule(module, Math.random().toString().substring(2));
+     samples.push(elapsed);
+     console.log(elapsed);
+  }
+  samples.sort((a,b) => a - b);
+  let div = document.createElement('div');
+  let median = samples[Math.floor(samples.length / 2)];
+  median = Math.round(median * 1000) / 1000;
+  div.innerText = name + ": " + median + " ms";
+  document.getElementById('benchmark-results').appendChild(div);
+}
+
+function enableButtons(enabled) {
+  for (let btn of document.querySelectorAll('button')) {
+    btn.disabled = !enabled;
+  }
+}
+
+async function runTest(name) {
+  enableButtons(false);
+  await repetitiveLoad(name, testConfigs[name].module, numTrials);
+  enableButtons(true);
+}
+
+async function runAll() {
+  for (let name in testConfigs) {
+    await runTest(name);
+  }
+}
+
+for (let name in testConfigs) {
+  let button = document.createElement('button');
+  button.addEventListener('click', () => runTest(name));
+  button.innerText = name;
+  document.getElementById('buttons').appendChild(button);
+}
+
+</script>
+
+</body>
+</html>

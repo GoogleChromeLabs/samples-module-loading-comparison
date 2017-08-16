@@ -78,6 +78,10 @@ The bundled / unbundled test cases are served at the following URLs:
   * bundled, unoptimized: https://localhost:44333/three/bundled-unoptimized.html
   * unbundled:            https://localhost:44333/three/unbundled.html
 
+These tests load the files only once, so the results may be noisy. At the
+toplevel test page https://localhost:44333/ you can run the unbundled test cases
+repeatedly (25 times) and see the median time.
+
 ### Synthesized module tree tests
 
 In addition to the real-world library test cases, this HTTP server provides
