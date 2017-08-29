@@ -38,10 +38,11 @@ import (
 )
 
 var (
-	httpAddr = flag.String("http", ":44333", "Listen address")
-	preload  = flag.Bool("preload", false, "Add <link rel='preload'> to HTML for all JS dependencies")
-	push     = flag.Bool("push", false, "Use HTTP/2 push to push dependencies with the JS entry point")
-	http1    = flag.Bool("http1", false, "Serve over HTTP/1.1 instead of HTTP/2")
+	httpAddrFlag = flag.String("http", ":44333", "Listen address")
+	preloadFlag  = flag.Bool("preload", false, "Add <link rel='preload'> to HTML for all JS dependencies")
+	pushFlag     = flag.Bool("push", false, "Use HTTP/2 push to push dependencies with the JS entry point")
+	http1Flag    = flag.Bool("http1", false, "Serve over HTTP/1.1 instead of HTTP/2")
+	gzipFlag     = flag.Bool("gzip", false, "Use Content-Encoding: gzip")
 )
 
 var cache = map[string][]byte{}
@@ -62,12 +63,12 @@ func main() {
 	http.HandleFunc("/synthesized/", handleSynthesized)
 	http.HandleFunc("/synthesized/a.js", handleJs)
 
-	if *http1 {
-		fmt.Printf("Server running at http://localhost%v\n", *httpAddr)
-		log.Fatal(http.ListenAndServe(*httpAddr, nil))
+	if *http1Flag {
+		fmt.Printf("Server running at http://localhost%v\n", *httpAddrFlag)
+		log.Fatal(http.ListenAndServe(*httpAddrFlag, nil))
 	} else {
-		fmt.Printf("Server running at https://localhost%v\n", *httpAddr)
-		log.Fatal(http.ListenAndServeTLS(*httpAddr, "cert.pem", "key.pem", nil))
+		fmt.Printf("Server running at https://localhost%v\n", *httpAddrFlag)
+		log.Fatal(http.ListenAndServeTLS(*httpAddrFlag, "cert.pem", "key.pem", nil))
 	}
 }
 
@@ -88,7 +89,7 @@ func cacheEverything() error {
 		unbundledJs := path.Join(project, "unbundled", "app.js")
 		unbundledHtmlContent, err := ioutil.ReadFile(path.Join("dist", unbundledHtml))
 
-		if *preload {
+		if *preloadFlag {
 			links := ""
 			for i := range jsfiles {
 				relative := path.Join(project, "unbundled", jsfiles[len(jsfiles)-1-i].(string))
@@ -146,6 +147,9 @@ func readFileAndEncode(path string) ([]byte, error) {
 }
 
 func encodeContent(content []byte) ([]byte, error) {
+	if !*gzipFlag {
+		return content, nil
+	}
 	var buf bytes.Buffer
 	gz := gzip.NewWriter(&buf)
 	_, err := gz.Write(content)
@@ -174,12 +178,14 @@ func onRequest(w http.ResponseWriter, r *http.Request) {
 	if ctype != "" {
 		w.Header().Set("Content-type", ctype)
 	}
-	w.Header().Set("Content-Encoding", "gzip")
+	if *gzipFlag {
+		w.Header().Set("Content-Encoding", "gzip")
+	}
 	w.Write(content)
 }
 
 func pushIfPossible(w http.ResponseWriter, r *http.Request, path string) {
-	if !*push {
+	if !*pushFlag {
 		return
 	}
 	pushes, ok := pushFiles[path]
