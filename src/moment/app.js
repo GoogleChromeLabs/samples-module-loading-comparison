@@ -26,4 +26,6 @@ function testMoment() {
   console.log(`Today is ${moment().format('dddd')}.`);
 }
 
-testMoment();
+if (!window.noRun) {
+  testMoment();
+}

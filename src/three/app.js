@@ -26,8 +26,10 @@ import * as THREE from './node_modules/three/src/Three.js';
 var scene, camera, renderer;
 var geometry, material, mesh;
 
-init();
-animate();
+if (!window.noRun) {
+  init();
+  animate();
+}
 
 function init() {
   scene = new THREE.Scene();

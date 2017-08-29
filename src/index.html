@@ -32,10 +32,15 @@ All tests are median of 25 runs.
 <script>
 
 const numTrials = 25;
+window.noRun = true;
 
 const testConfigs = {
-  'Moment.js': { module: 'moment/unbundled/node_modules/moment/src/moment.js' },
-  'Three.js': { module: 'three/unbundled/node_modules/three/src/Three.js' }
+  'Moment.js unbundled': { module: 'moment/unbundled/app.js' },
+  'Three.js unbundled': { module: 'three/unbundled/app.js' },
+  'Moment.js bundled unoptimized': { module: 'moment/bundled-unoptimized/app.js' },
+  'Three.js bundled unoptimized': { module: 'three/bundled-unoptimized/app.js' },
+  'Moment.js bundled optimized': { module: 'moment/bundled-optimized/app.js' },
+  'Three.js bundled optimized': { module: 'three/bundled-optimized/app.js' },
 };
 
 function loadModule(module, rand) {
