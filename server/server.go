@@ -25,6 +25,7 @@ import (
 	"flag"
 	"fmt"
 	"html/template"
+	"io"
 	"io/ioutil"
 	"log"
 	"mime"
@@ -180,6 +181,9 @@ func onRequest(w http.ResponseWriter, r *http.Request) {
 	}
 	if *gzipFlag {
 		w.Header().Set("Content-Encoding", "gzip")
+	} else if strings.HasPrefix(r.URL.Path, "/r/") {
+		// Add randomized comment so that it won't hit content-based cache.
+		io.WriteString(w, "// " + r.URL.Path + "\n")
 	}
 	w.Write(content)
 }
