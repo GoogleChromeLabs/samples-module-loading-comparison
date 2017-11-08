@@ -39,11 +39,12 @@ import (
 )
 
 var (
-	httpAddrFlag = flag.String("http", ":44333", "Listen address")
-	preloadFlag  = flag.Bool("preload", false, "Add <link rel='preload'> to HTML for all JS dependencies")
-	pushFlag     = flag.Bool("push", false, "Use HTTP/2 push to push dependencies with the JS entry point")
-	http1Flag    = flag.Bool("http1", false, "Serve over HTTP/1.1 instead of HTTP/2")
-	gzipFlag     = flag.Bool("gzip", false, "Use Content-Encoding: gzip")
+	httpAddrFlag      = flag.String("http", ":44333", "Listen address")
+	preloadFlag       = flag.Bool("preload", false, "Add <link rel='preload'> to HTML for all JS dependencies")
+	modulePreloadFlag = flag.Bool("modulepreload", false, "Add <link rel='modulepreload'> to HTML for all JS dependencies")
+	pushFlag          = flag.Bool("push", false, "Use HTTP/2 push to push dependencies with the JS entry point")
+	http1Flag         = flag.Bool("http1", false, "Serve over HTTP/1.1 instead of HTTP/2")
+	gzipFlag          = flag.Bool("gzip", false, "Use Content-Encoding: gzip")
 )
 
 var cache = map[string][]byte{}
@@ -95,6 +96,14 @@ func cacheEverything() error {
 			for i := range jsfiles {
 				relative := path.Join(project, "unbundled", jsfiles[len(jsfiles)-1-i].(string))
 				links += "  <link rel='preload' href='/" + relative + "' as='script' crossorigin='use-credentials'>\n"
+			}
+			unbundledHtmlContent = []byte(strings.Replace(string(unbundledHtmlContent), "</head>", links+"</head>", 1))
+		}
+		if *modulePreloadFlag {
+			links := ""
+			for i := range jsfiles {
+				relative := path.Join(project, "unbundled", jsfiles[len(jsfiles)-1-i].(string))
+				links += "  <link rel='modulepreload' href='/" + relative + "'>\n"
 			}
 			unbundledHtmlContent = []byte(strings.Replace(string(unbundledHtmlContent), "</head>", links+"</head>", 1))
 		}
@@ -183,7 +192,7 @@ func onRequest(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Encoding", "gzip")
 	} else if strings.HasPrefix(r.URL.Path, "/r/") {
 		// Add randomized comment so that it won't hit content-based cache.
-		io.WriteString(w, "// " + r.URL.Path + "\n")
+		io.WriteString(w, "// "+r.URL.Path+"\n")
 	}
 	w.Write(content)
 }
@@ -243,7 +252,7 @@ func handleSynthesized(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "text/html")
 
-	synthesizedTemplate.Execute(w, map[string]string{"ScriptUrl":scriptUrl})
+	synthesizedTemplate.Execute(w, map[string]string{"ScriptUrl": scriptUrl})
 }
 
 // Query parameters:
