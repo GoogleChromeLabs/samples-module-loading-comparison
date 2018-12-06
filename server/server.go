@@ -95,7 +95,7 @@ func cacheEverything() error {
 			links := ""
 			for i := range jsfiles {
 				relative := path.Join(project, "unbundled", jsfiles[len(jsfiles)-1-i].(string))
-				links += "  <link rel='preload' href='/" + relative + "' as='script' crossorigin='use-credentials'>\n"
+				links += "  <link rel='preload' href='/" + relative + "' as='script' crossorigin='anonymous'>\n"
 			}
 			unbundledHtmlContent = []byte(strings.Replace(string(unbundledHtmlContent), "</head>", links+"</head>", 1))
 		}
