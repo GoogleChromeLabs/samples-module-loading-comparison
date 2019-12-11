@@ -5,6 +5,10 @@
   "private": true,
   "license": "Apache-2.0",
   "author": "Google",
+  "scripts": {
+    "build": "gulp build",
+    "bundle": "gen-bundle -baseURL https://googlechromelabs.github.io/samples-module-loading-comparison/ -dir dist -primaryURL https://googlechromelabs.github.io/samples-module-loading-comparison/bundle-index.html -o samples-module-loading-comparison.wbn"
+  },
   "engines": {
     "node": ">=6.0.0"
   },
