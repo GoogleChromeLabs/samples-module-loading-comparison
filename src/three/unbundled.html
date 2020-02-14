@@ -12,6 +12,10 @@
   <div id="benchmark-results"></div>
   <div class="output"></div>
 
+  <script>
+    window.noRun = true;
+    performance.setResourceTimingBufferSize(500);
+  </script>
   <script type="module" src="unbundled/app.js"></script>
   <script type="module" src="../display-results.js"></script>
 </body>
