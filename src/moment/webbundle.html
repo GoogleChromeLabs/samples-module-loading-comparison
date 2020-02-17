@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+  <link rel="webbundle" href="./momentjs.wbn" scope="https://moment.js/">
+  <title>Import test - moment.js, WebBundle</title>
+</head>
+
+<body class="mm-app">
+  <div id="benchmark-results"></div>
+  <div class="output"></div>
+
+  <script>
+      // Dynamically insert a script tag so that preload scanner won't see it.
+      const s = document.createElement('script');
+      s.type = 'module';
+      s.src = 'https://moment.js/app.js';
+      document.body.appendChild(s);
+  </script>
+  <script type="module" src="../display-results.js"></script>
+</body>
+
+</html>
