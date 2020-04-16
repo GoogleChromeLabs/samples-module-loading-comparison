@@ -9,15 +9,23 @@
 </head>
 
 <body class="mm-app">
+  <button id="run">Run Test</button>
   <div id="benchmark-results"></div>
-  <div class="output"></div>
 
-  <script>
+  <script type="module">
     window.noRun = true;
     performance.setResourceTimingBufferSize(500);
+
+    document.querySelector('#run').onclick = () => {
+      performance.mark('start');
+      import('./unbundled/app.js').then((m) => {
+        performance.measure('three.js import', 'start');
+        console.log(m);
+        let duration = performance.getEntriesByType('measure')[0].duration;
+        document.querySelector('#benchmark-results').innerText = `Time to import: ${Math.round(duration)} ms`;
+      });
+    };
   </script>
-  <script type="module" src="unbundled/app.js"></script>
-  <script type="module" src="../display-results.js"></script>
 </body>
 
 </html>

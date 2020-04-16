@@ -10,19 +10,22 @@
 </head>
 
 <body class="mm-app">
+  <button id="run">Run Test</button>
   <div id="benchmark-results"></div>
-  <div class="output"></div>
 
   <script>
-      window.noRun = true;
-      performance.setResourceTimingBufferSize(500);
-      // Dynamically insert a script tag so that preload scanner won't see it.
-      const s = document.createElement('script');
-      s.type = 'module';
-      s.src = 'https://three.js/app.js';
-      document.body.appendChild(s);
+    window.noRun = true;
+    performance.setResourceTimingBufferSize(500);
+    document.querySelector('#run').onclick = () => {
+      performance.mark('start');
+      import('https://three.js/app.js').then((m) => {
+        performance.measure('three.js import', 'start');
+        console.log(m);
+        let duration = performance.getEntriesByType('measure')[0].duration;
+        document.querySelector('#benchmark-results').innerText = `Time to import: ${Math.round(duration)} ms`;
+      });
+    };
   </script>
-  <script type="module" src="../display-results.js"></script>
 </body>
 
 </html>
