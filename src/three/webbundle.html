@@ -6,7 +6,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
   <link rel="webbundle" href="./threejs.wbn" scope="https://three.js/">
-  <title>Import test - three.js, WebBundle</title>
+  <title>Import test - three.js, Subresource WebBundle</title>
 </head>
 
 <body class="mm-app">
@@ -14,7 +14,9 @@
   <div id="benchmark-results"></div>
 
   <script>
-    window.noRun = true;
+    const params = (new URL(window.location)).searchParams;
+    if (params.get('noRun'))
+      window.noRun = true;
     performance.setResourceTimingBufferSize(500);
     document.querySelector('#run').onclick = () => {
       performance.mark('start');

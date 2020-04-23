@@ -100,3 +100,34 @@ https://localhost:44333/synthesized/?depth=10&branch=2
 
 Note: Currently, --push and --preload options are not supported in synthesized
 tests.
+
+### [Experimental] WebBundle tests
+
+[Web Bundle](https://wicg.github.io/webpackage/draft-yasskin-wpack-bundled-exchanges.html)
+is a file format for encapsulating one or more HTTP resources. It allows
+distributing a large number of module scripts as a single HTTP resource.
+
+You need [WebBundle Go tools](https://github.com/WICG/webpackage/tree/master/go/bundle)
+to generate Web Bundles, which can be installed by this command:
+```
+go get -u github.com/WICG/webpackage/go/bundle/cmd/...
+```
+Then, this command will generate Web Bundles for the moment.js / three.js tests:
+```
+./gen-bundles.sh
+```
+
+As of April 2020, Web Bundles support is implemented only in Chromium-based
+browsers, behind an experimental feature flag. To enable Web Bundles in Chrome,
+turn on `chrome://flags/#web-bundles` flag.
+
+After enabling the flag, drag and drop `samples-module-loading-comparison.wbn`
+into Chrome to open it. An index page will be displayed from which you can
+choose a benchmark to run.
+
+`gen-bundles.sh` also generates `dist/moment/momentjs.wbn` and
+`dist/three/threejs.wbn`. They only bundle the module scripts for each test.
+These can be used with `dist/{moment,three}/webbundle.html` to test
+[Subresource loading with Web Bundles](https://github.com/WICG/webpackage/blob/master/explainers/subresource-loading.md).
+(Note: this is a proposal in very early stage; experimental implementation
+is not landed in any browsers as of April 2020.)

@@ -26,7 +26,7 @@ import * as THREE from './node_modules/three/src/Three.js';
 var scene, camera, renderer;
 var geometry, material, mesh;
 
-if (!window.noRun && false) {
+if (!window.noRun) {
   init();
   animate();
 }

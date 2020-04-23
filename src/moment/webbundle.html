@@ -6,21 +6,25 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
   <link rel="webbundle" href="./momentjs.wbn" scope="https://moment.js/">
-  <title>Import test - moment.js, WebBundle</title>
+  <title>Import test - moment.js, Subresource WebBundle</title>
 </head>
 
 <body class="mm-app">
+  <button id="run">Run Test</button>
   <div id="benchmark-results"></div>
-  <div class="output"></div>
 
   <script>
-      // Dynamically insert a script tag so that preload scanner won't see it.
-      const s = document.createElement('script');
-      s.type = 'module';
-      s.src = 'https://moment.js/app.js';
-      document.body.appendChild(s);
+    performance.setResourceTimingBufferSize(500);
+    document.querySelector('#run').onclick = () => {
+      performance.mark('start');
+      import('https://three.js/app.js').then((m) => {
+        performance.measure('three.js import', 'start');
+        console.log(m);
+        let duration = performance.getEntriesByType('measure')[0].duration;
+        document.querySelector('#benchmark-results').innerText = `Time to import: ${Math.round(duration)} ms`;
+      });
+    };
   </script>
-  <script type="module" src="../display-results.js"></script>
 </body>
 
 </html>
