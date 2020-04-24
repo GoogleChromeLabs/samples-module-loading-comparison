@@ -178,7 +178,7 @@ func onRequest(w http.ResponseWriter, r *http.Request) {
 
 	content, ok := cache[upath]
 	if !ok {
-		http.Error(w, "404 page not found", http.StatusNotFound)
+		http.ServeFile(w, r, path.Join("dist", r.URL.Path))
 		return
 	}
 

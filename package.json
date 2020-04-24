@@ -5,6 +5,10 @@
   "private": true,
   "license": "Apache-2.0",
   "author": "Google",
+  "scripts": {
+    "build": "gulp build",
+    "bundle": "./gen-bundles.sh"
+  },
   "engines": {
     "node": ">=6.0.0"
   },
