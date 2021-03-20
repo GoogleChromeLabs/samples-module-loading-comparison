@@ -16,12 +16,6 @@ NPM packages need to be installed on the root and both `src/` subdirectories.
 
 ```sh
 npm i
-cd src/moment
-npm i
-cd ../..
-cd src/three
-npm i
-cd ../..
 ```
 
 Gulp needs to be available globally. You can install it by doing:
