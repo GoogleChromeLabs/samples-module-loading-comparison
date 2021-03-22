@@ -7,20 +7,17 @@
   "author": "Google",
   "scripts": {
     "build": "gulp build",
-    "bundle": "./gen-bundles.sh"
+    "serve": "gulp serve",
+    "bundle": "./gen-bundles.sh",
+    "postinstall": "cd src/moment && npm install && cd ../three && npm install"
   },
   "engines": {
-    "node": ">=6.0.0"
+    "node": ">=12.0.0"
   },
   "dependencies": {
     "babel-core": "^6.24.1",
     "babili": "^0.1.4",
     "del": "^3.0.0",
-    "gulp": "^3.9.1",
-    "gulp-babel": "^6.1.2",
-    "gulp-rename": "^1.2.2",
-    "gulp-replace": "^0.5.4",
-    "gulp-rollup-each": "^0.2.2",
     "merge-stream": "^1.0.1",
     "resolve-from": "^3.0.0",
     "rollup": "^0.42.0",
@@ -28,5 +25,14 @@
     "spdy": "^3.4.7",
     "webpack": "^3.0.0",
     "webpack-stream": "^3.2.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.13.10",
+    "babel-preset-minify": "^0.5.1",
+    "gulp": "^4.0.2",
+    "gulp-babel": "^8.0.0",
+    "gulp-rename": "^2.0.0",
+    "gulp-replace": "^1.0.0",
+    "gulp-rollup-each": "^3.0.2"
   }
 }

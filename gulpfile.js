@@ -38,6 +38,7 @@ const spdy = require('spdy');
 const zlib = require('zlib');
 
 const del = require('del');
+const { task, series, parallel } = require('gulp');
 
 const projects = ['moment', 'three'];
 let files = {};
@@ -47,6 +48,27 @@ const cache = {};
 let preload = false;
 let http1 = false;
 let push = false;
+
+
+const wrapTaskFn = (fn) => (complete) => {
+  const result = fn()
+  if (typeof result === 'undefined') {
+    complete()
+  }
+  return result
+}
+
+const gulpTask = (taskName, dependencies, taskFn) => {
+  if (typeof dependencies === 'function') {
+    taskFn = dependencies
+    dependencies = []
+  }
+  console.log(taskName)
+  if (!dependencies.length) {
+    return task(taskName, wrapTaskFn(taskFn))
+  }
+  return task(taskName, series(parallel(...dependencies.map(n => task(n))), wrapTaskFn(taskFn)))
+}
 
 // Rollup plugin for listing all the module files.
 function _listModules(project) {
@@ -121,10 +143,10 @@ function _glsl() {
 }
 
 // Delete all generated files.
-gulp.task('clean', () => del(['dist', 'temp']));
+gulpTask('clean', () => del(['dist', 'temp']));
 
 // Obtain list of dependency JS files.
-gulp.task('scan', () => {
+gulpTask('scan', () => {
   return Promise.all(projects.map(project => {
     return rollup.rollup({
       entry: path.join('src', project, 'app.js'),
@@ -139,12 +161,11 @@ gulp.task('scan', () => {
 
 // Rename GLSL files, transform them, and move them together with the other JS.
 // Special handling for the GLSL files in three.js.
-gulp.task('glsl', ['scan'], () => {
-  const tasks = projects.map(project => {
+gulpTask('glsl', ['scan'], () => {
+  const tasks = ['three'].map(project => {
     const glslFiles = files[project]
         .filter(f => /\.glsl$/.test(f))
         .map(f => path.join(__dirname, 'src', project, f));
-
     return gulp.src(glslFiles, {base: path.join(__dirname, 'src', project)})
       .pipe(rollupEach({
         plugins: [_glsl()]
@@ -157,8 +178,14 @@ gulp.task('glsl', ['scan'], () => {
   return merge(...tasks);
 });
 
+// Copy HTML to all three builds.
+gulpTask('html', ['clean'], () => {
+  return merge(gulp.src('src/**/*.html').pipe(gulp.dest('dist')),
+               gulp.src('src/*.js').pipe(gulp.dest('dist')));
+});
+
 // Create unbundled build.
-gulp.task('unbundled', ['glsl', 'html'], () => {
+gulpTask('unbundled', ['glsl', 'html'], () => {
   const tasks = projects.map(project => {
     const jsFiles = files[project]
         .filter(f => /\.js$/.test(f))
@@ -175,7 +202,7 @@ gulp.task('unbundled', ['glsl', 'html'], () => {
 });
 
 // Create optimized bundled build.
-gulp.task('bundled-optimized', ['unbundled'], () => {
+gulpTask('bundled-optimized', ['unbundled'], () => {
   return Promise.all(projects.map(project => {
     return rollup.rollup({
       entry: path.join('temp', project, 'unbundled', 'app.js'),
@@ -192,7 +219,7 @@ gulp.task('bundled-optimized', ['unbundled'], () => {
 });
 
 // Create unoptimized bundled build.
-gulp.task('bundled-unoptimized', ['unbundled'], () => {
+gulpTask('bundled-unoptimized', ['unbundled'], () => {
   const tasks = projects.map(project => {
     return gulp.src(path.join('temp', project, 'unbundled', 'app.js'),
         {base: path.join('temp', project, 'unbundled')})
@@ -213,27 +240,28 @@ gulp.task('bundled-unoptimized', ['unbundled'], () => {
 });
 
 // Minify all three builds.
-gulp.task('minify', ['unbundled', 'bundled-unoptimized', 'bundled-optimized'], () => {
+gulpTask('minify', ['unbundled', 'bundled-unoptimized', 'bundled-optimized'], () => {
   const tasks = projects.map(project => {
     return gulp.src(`temp/${project}/**/*.js`, {base: path.join('temp', project)})
       .pipe(babel({
         babelrc: false,
-        presets: ['babili'],
+        presets: [
+          ['minify', {
+            builtIns: false,
+            evaluate: false,
+            mangle: false,
+          }]
+        ],
+        // presets: ['babili'],
       }))
       .pipe(gulp.dest(path.join('dist', project)));
   });
   return merge(...tasks);
 });
 
-// Copy HTML to all three builds.
-gulp.task('html', ['clean'], () => {
-  return merge(gulp.src('src/**/*.html').pipe(gulp.dest('dist')),
-               gulp.src('src/*.js').pipe(gulp.dest('dist')));
-});
-
 // Meta build task for creating all builds.
 // Also generates JSON file with full list of served JS files.
-gulp.task('build', ['html', 'minify'], () => {
+gulpTask('build', ['html', 'minify'], () => {
   const jsFiles = {};
   projects.forEach(project => {
     jsFiles[project] = [];
@@ -340,7 +368,7 @@ function _onRequest(request, response) {
 // * --http1: Serve over HTTP/1.1 instead of HTTP/2.
 // * --push: Use HTTP/2 push to push dependencies with the JS entry point.
 // * --preload: Add <link rel="preload"> to HTML for all JS dependencies.
-gulp.task('serve', () => {
+gulpTask('serve', () => {
   const opts = {
     key: fs.readFileSync(path.join(__dirname, 'key.pem')),
     cert: fs.readFileSync(path.join(__dirname, 'cert.pem')),
